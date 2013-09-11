@@ -1633,12 +1633,8 @@ munmap_back:
 
 	vma_link(mm, vma, prev, rb_link, rb_parent);
 	/* Once vma denies write, undo our temporary denial count */
-	if (file) {
-		if (vm_flags & VM_SHARED)
-			mapping_unmap_writable(file->f_mapping);
-		if (vm_flags & VM_DENYWRITE)
-			allow_write_access(file);
-	}
+	if (vm_flags & VM_DENYWRITE)
+		allow_write_access(file);
 	file = vma->vm_file;
 out:
 	perf_event_mmap(vma);
@@ -1658,6 +1654,8 @@ out:
 	return addr;
 
 unmap_and_free_vma:
+	if (vm_flags & VM_DENYWRITE)
+		allow_write_access(file);
 	vma->vm_file = NULL;
 	fput(file);
 
