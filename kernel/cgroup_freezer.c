@@ -511,7 +511,7 @@ void unfreezer_fork(struct task_struct *task)
 
 
 static int freezer_write(struct cgroup_subsys_state *css, struct cftype *cft,
-			 const char *buffer)
+			 char *buffer)
 {
 	bool freeze;
 
