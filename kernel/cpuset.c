@@ -1982,7 +1982,7 @@ struct cgroup_subsys cpuset_cgrp_subsys = {
 	.allow_attach = cpuset_allow_attach,
 	.cancel_attach = cpuset_cancel_attach,
 	.attach = cpuset_attach,
-	.base_cftypes = files,
+	.legacy_cftypes = files,
 	.early_init = 1,
 };
 
