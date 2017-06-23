@@ -393,7 +393,6 @@ struct fg_chip {
 	struct power_supply	*batt_psy;
 	struct power_supply	*usb_psy;
 	struct power_supply	*dc_psy;
-	struct fg_wakeup_source	memif_wakeup_source;
 	struct fg_wakeup_source	profile_wakeup_source;
 	struct fg_wakeup_source	empty_check_wakeup_source;
 	struct fg_wakeup_source	resume_soc_wakeup_source;
@@ -720,7 +719,6 @@ static int fg_req_and_wait_access(struct fg_chip *chip, int timeout)
 			pr_err("failed to set mem access bit\n");
 			return -EIO;
 		}
-		fg_stay_awake(&chip->memif_wakeup_source);
 	}
 
 wait:
@@ -747,7 +745,6 @@ static int fg_release_access(struct fg_chip *chip)
 
 	rc = fg_masked_write(chip, MEM_INTF_CFG(chip),
 			RIF_MEM_ACCESS_REQ, 0, 1);
-	fg_relax(&chip->memif_wakeup_source);
 	INIT_COMPLETION(chip->sram_access_granted);
 
 	return rc;
@@ -1553,7 +1550,6 @@ resched:
 	} else {
 		*resched_ms = SRAM_PERIOD_NO_ID_UPDATE_MS;
 	}
-	fg_relax(&chip->update_sram_wakeup_source);
 }
 
 #define SRAM_TIMEOUT_MS			3000
@@ -1611,7 +1607,6 @@ static void update_temp_data(struct work_struct *work)
 	if (chip->fg_restarting)
 		goto resched;
 
-	fg_stay_awake(&chip->update_temp_wakeup_source);
 	if (chip->sw_rbias_ctrl) {
 		rc = fg_mem_masked_write(chip, EXTERNAL_SENSE_SELECT,
 				BATT_TEMP_CNTRL_MASK,
@@ -4440,10 +4435,7 @@ static void fg_cleanup(struct fg_chip *chip)
 	mutex_destroy(&chip->sysfs_restart_lock);
 	wakeup_source_trash(&chip->resume_soc_wakeup_source.source);
 	wakeup_source_trash(&chip->empty_check_wakeup_source.source);
-	wakeup_source_trash(&chip->memif_wakeup_source.source);
 	wakeup_source_trash(&chip->profile_wakeup_source.source);
-	wakeup_source_trash(&chip->update_temp_wakeup_source.source);
-	wakeup_source_trash(&chip->update_sram_wakeup_source.source);
 }
 
 static int fg_remove(struct spmi_device *spmi)
@@ -5249,14 +5241,8 @@ static int fg_probe(struct spmi_device *spmi)
 
 	wakeup_source_init(&chip->empty_check_wakeup_source.source,
 			"qpnp_fg_empty_check");
-	wakeup_source_init(&chip->memif_wakeup_source.source,
-			"qpnp_fg_memaccess");
 	wakeup_source_init(&chip->profile_wakeup_source.source,
 			"qpnp_fg_profile");
-	wakeup_source_init(&chip->update_temp_wakeup_source.source,
-			"qpnp_fg_update_temp");
-	wakeup_source_init(&chip->update_sram_wakeup_source.source,
-			"qpnp_fg_update_sram");
 	wakeup_source_init(&chip->resume_soc_wakeup_source.source,
 			"qpnp_fg_set_resume_soc");
 	mutex_init(&chip->rw_lock);
@@ -5451,10 +5437,7 @@ of_init_fail:
 	mutex_destroy(&chip->sysfs_restart_lock);
 	wakeup_source_trash(&chip->resume_soc_wakeup_source.source);
 	wakeup_source_trash(&chip->empty_check_wakeup_source.source);
-	wakeup_source_trash(&chip->memif_wakeup_source.source);
 	wakeup_source_trash(&chip->profile_wakeup_source.source);
-	wakeup_source_trash(&chip->update_temp_wakeup_source.source);
-	wakeup_source_trash(&chip->update_sram_wakeup_source.source);
 	return rc;
 }
 
@@ -5494,8 +5477,8 @@ static int fg_suspend(struct device *dev)
 	if (!chip->sw_rbias_ctrl)
 		return 0;
 
-	cancel_delayed_work(&chip->update_temp_work);
-	cancel_delayed_work(&chip->update_sram_data);
+	cancel_delayed_work_sync(&chip->update_temp_work);
+	cancel_delayed_work_sync(&chip->update_sram_data);
 
 	return 0;
 }
