@@ -2825,6 +2825,8 @@ static int proc_pid_personality(struct seq_file *m, struct pid_namespace *ns,
 	return err;
 }
 
+static const struct file_operations proc_sleeptime_operations;
+
 /*
  * Thread groups
  */
