@@ -509,7 +509,7 @@ void *wcd9xxx_mbhc_cal_btn_det_mp(
 		ret = NULL;
 	}
 
-	return ret;
+	return (void *)ret;
 }
 EXPORT_SYMBOL(wcd9xxx_mbhc_cal_btn_det_mp);
 
