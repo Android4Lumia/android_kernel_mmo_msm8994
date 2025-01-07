@@ -77,7 +77,7 @@
 #include <linux/miscdevice.h>
 #include <linux/falloc.h>
 #include <asm/uaccess.h>
-#define LOOP_SET_BLOCK_SIZE	0x4C08
+#define LOOP_SET_BLOCK_SIZE	0x4C09
 static DEFINE_IDR(loop_index_idr);
 static DEFINE_MUTEX(loop_index_mutex);
 
