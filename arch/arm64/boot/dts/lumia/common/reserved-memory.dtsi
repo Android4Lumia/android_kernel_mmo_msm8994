@@ -1,0 +1,20 @@
+&dfps_data_mem {
+	status = "disabled";
+};
+
+&cont_splash_mem {
+	reg = <0 0x03400000 0 0xc00000>;
+};
+
+/* ref: msm8937.dtsi */
+
+/ {
+    reserved-memory {
+            pstore_reserve_mem: pstore_reserve_mem_region@0 {
+                    compatible = "removed-dma-pool";
+                    no-map;
+                    reg = <0 0x1FF00000 0 0x00100000>;
+                    label = "pstore_reserve_mem";
+            };
+    };
+};
