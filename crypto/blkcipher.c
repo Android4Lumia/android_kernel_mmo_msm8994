@@ -221,56 +221,56 @@ static inline int blkcipher_next_fast(struct blkcipher_desc *desc,
 }
 
 static int blkcipher_walk_next(struct blkcipher_desc *desc,
-			       struct blkcipher_walk *walk)
+	struct blkcipher_walk *walk)
 {
-	unsigned int bsize;
-	unsigned int n;
-	int err;
+unsigned int bsize;
+unsigned int n;
+int err;
 
-	n = walk->total;
-	if (unlikely(n < walk->cipher_blocksize)) {
-		desc->flags |= CRYPTO_TFM_RES_BAD_BLOCK_LEN;
-		return blkcipher_walk_done(desc, walk, -EINVAL);
-	}
+n = walk->total;
+if (unlikely(n < walk->cipher_blocksize)) {
+desc->flags |= CRYPTO_TFM_RES_BAD_BLOCK_LEN;
+return blkcipher_walk_done(desc, walk, -EINVAL);
+}
 
-	bsize = min(walk->blocksize, n);
+bsize = min(walk->walk_blocksize, n);
 
-	walk->flags &= ~(BLKCIPHER_WALK_SLOW | BLKCIPHER_WALK_COPY |
-			 BLKCIPHER_WALK_DIFF);
-	if (!scatterwalk_aligned(&walk->in, walk->alignmask) ||
-	    !scatterwalk_aligned(&walk->out, walk->alignmask)) {
-		walk->flags |= BLKCIPHER_WALK_COPY;
-		if (!walk->page) {
-			walk->page = (void *)__get_free_page(GFP_ATOMIC);
-			if (!walk->page)
-				n = 0;
-		}
-	}
+walk->flags &= ~(BLKCIPHER_WALK_SLOW | BLKCIPHER_WALK_COPY |
+BLKCIPHER_WALK_DIFF);
+if (!scatterwalk_aligned(&walk->in, walk->alignmask) ||
+!scatterwalk_aligned(&walk->out, walk->alignmask)) {
+walk->flags |= BLKCIPHER_WALK_COPY;
+if (!walk->page) {
+walk->page = (void *)__get_free_page(GFP_ATOMIC);
+if (!walk->page)
+ n = 0;
+}
+}
 
-	n = scatterwalk_clamp(&walk->in, n);
-	n = scatterwalk_clamp(&walk->out, n);
+n = scatterwalk_clamp(&walk->in, n);
+n = scatterwalk_clamp(&walk->out, n);
 
-	if (unlikely(n < bsize)) {
-		err = blkcipher_next_slow(desc, walk, bsize, walk->alignmask);
-		goto set_phys_lowmem;
-	}
+if (unlikely(n < bsize)) {
+err = blkcipher_next_slow(desc, walk, bsize, walk->alignmask);
+goto set_phys_lowmem;
+}
 
-	walk->nbytes = n;
-	if (walk->flags & BLKCIPHER_WALK_COPY) {
-		err = blkcipher_next_copy(walk);
-		goto set_phys_lowmem;
-	}
+walk->nbytes = n;
+if (walk->flags & BLKCIPHER_WALK_COPY) {
+err = blkcipher_next_copy(walk);
+goto set_phys_lowmem;
+}
 
-	return blkcipher_next_fast(desc, walk);
+return blkcipher_next_fast(desc, walk);
 
 set_phys_lowmem:
-	if (walk->flags & BLKCIPHER_WALK_PHYS) {
-		walk->src.phys.page = virt_to_page(walk->src.virt.addr);
-		walk->dst.phys.page = virt_to_page(walk->dst.virt.addr);
-		walk->src.phys.offset &= PAGE_SIZE - 1;
-		walk->dst.phys.offset &= PAGE_SIZE - 1;
-	}
-	return err;
+if (walk->flags & BLKCIPHER_WALK_PHYS) {
+walk->src.phys.page = virt_to_page(walk->src.virt.addr);
+walk->dst.phys.page = virt_to_page(walk->dst.virt.addr);
+walk->src.phys.offset &= PAGE_SIZE - 1;
+walk->dst.phys.offset &= PAGE_SIZE - 1;
+}
+return err;
 }
 
 static inline int blkcipher_copy_iv(struct blkcipher_walk *walk)
