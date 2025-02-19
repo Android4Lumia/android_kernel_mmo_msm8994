@@ -11,27 +11,19 @@
  */
 
 &mdss_mdp {
-	qcom,mdss-pref-prim-intf = "dsi";
+	//qcom,mdss-pref-prim-intf = "dsi";
+	status = "disabled";
 };
 
 &pmx_mdss {
-	qcom,num-grp-pins = <1>;
-	qcom,pins = <&gp 78>;
+status = "disabled";
 };
 
 &pmx_mdss_te {
-	qcom,num-grp-pins = <1>;
-	qcom,pins = <&gp 10>;
+status = "disabled";
 };
 
 &mdss_dsi0 {
     //panel name will be included from the dtsi
-	pinctrl-names = "mdss_default", "mdss_sleep";
-	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
-	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
-
-	qcom,platform-reset-gpio = <&msm_gpio 78 0>;
-	qcom,platform-te-gpio = <&msm_gpio 10 0>;
-
-	vddio-supply = <&pm8994_s4>;
+	status = "disabled";
 };
