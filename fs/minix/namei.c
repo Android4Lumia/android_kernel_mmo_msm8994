@@ -54,6 +54,18 @@ static int minix_mknod(struct inode * dir, struct dentry *dentry, umode_t mode, 
 	return error;
 }
 
+static int minix_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
+{
+	int error;
+	struct inode *inode = minix_new_inode(dir, mode, &error);
+	if (inode) {
+		minix_set_inode(inode, 0);
+		mark_inode_dirty(inode);
+		d_tmpfile(dentry, inode);
+	}
+	return error;
+}
+
 static int minix_create(struct inode *dir, struct dentry *dentry, umode_t mode,
 		bool excl)
 {
