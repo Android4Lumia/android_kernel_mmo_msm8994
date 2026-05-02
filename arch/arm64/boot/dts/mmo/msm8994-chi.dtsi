@@ -75,19 +75,26 @@
 	status = "disabled";
 };
 
-&usb3 {
-	status = "ok";
-};
-
-&hsphy0 {
-	status = "ok";
-};
-
-&ssphy0 {
-	status = "ok";
-};
-
-&qcom_crypto1fde {
+ &usb3 {
+	 status = "ok";
+	 qcom,usbin-vadc = <&pmi8994_vadc>;
+	 qcom,internal-chg-detect;
+ 
+	 dwc3@f9200000 {
+		 maximum-speed = "high-speed";
+		 no-set-vbus-power;
+	 };
+ };
+ 
+ &hsphy0 {
+	 status = "ok";
+ };
+ 
+ &ssphy0 {
+	 status = "ok";
+ };
+ 
+ &qcom_crypto1fde {
 	status = "okay";
 };
 
@@ -101,21 +108,21 @@
 
 &qcom_crypto2pfe {
 	status = "okay";
-};
+ };
 
-&qcom_cedev {
-	status = "okay";
-};
-
-&usb_ehci {
-	status = "ok";
+ &qcom_cedev {
+	 status = "okay";
+ };
+ 
+ &usb_ehci {
+	 status = "ok";
 	qcom,usb2-enable-uicc;
-};
-
-&qusb_phy {
+ };
+ 
+ &qusb_phy {
 	status = "ok";
-};
-
+ };
+ 
 &pcie1 {
 	/delete-property/ qcom,ep-wakeirq;
 };
