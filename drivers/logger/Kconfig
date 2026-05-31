@@ -2,7 +2,7 @@ config PARTLOG
     tristate "Persistent partition log backend"
     depends on BLOCK
     select PARTITION_META_INFO   # enables GPT label support in hd_struct
-    default y
+    default n
     help
       Console backend that writes every printk() message to a raw eMMC
       partition.  Works continuously, not only on panic.  No pstore,
