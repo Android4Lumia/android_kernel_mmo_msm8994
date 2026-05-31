@@ -142,7 +142,6 @@ static int ext2_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
 	return 0;
 }
 
-
 static int ext2_mknod (struct inode * dir, struct dentry *dentry, umode_t mode, dev_t rdev)
 {
 	struct inode * inode;
@@ -422,6 +421,7 @@ const struct inode_operations ext2_dir_inode_operations = {
 #endif
 	.setattr	= ext2_setattr,
 	.get_acl	= ext2_get_acl,
+	.tmpfile	= ext2_tmpfile,
 };
 
 const struct inode_operations ext2_special_inode_operations = {

@@ -433,7 +433,7 @@ static void  ramoops_of_init(struct platform_device *pdev)
 	struct ramoops_platform_data *pdata;
 	struct device_node *np = pdev->dev.of_node;
 	u32 start = 0, size = 0, console = 0, pmsg = 0;
-	u32 record = 0, oops = 0;
+	u32 record = 0, oops = 0, ftrace = 0;
 	int ret;
 
 	pdata = dev_get_drvdata(dev);
@@ -471,11 +471,18 @@ static void  ramoops_of_init(struct platform_device *pdev)
 	if (ret)
 		pr_info("oops not configured");
 
+	ret = of_property_read_u32(np, "android,ramoops-ftrace-size",
+				&ftrace);
+	if (ret)
+		pr_info("ftrace not configured");
+
+
 	pdata->mem_address = start;
 	pdata->mem_size = size;
 	pdata->console_size = console;
 	pdata->pmsg_size = pmsg;
 	pdata->record_size = record;
+	pdata->ftrace_size = ftrace;
 	pdata->dump_oops = (int)oops;
 }
 #else
@@ -520,13 +527,11 @@ static int ramoops_probe(struct platform_device *pdev)
 		goto fail_out;
 	}
 
-	if (!is_power_of_2(pdata->mem_size))
-		pdata->mem_size = rounddown_pow_of_two(pdata->mem_size);
-	if (!is_power_of_2(pdata->record_size))
+	if (pdata->record_size && !is_power_of_2(pdata->record_size))
 		pdata->record_size = rounddown_pow_of_two(pdata->record_size);
-	if (!is_power_of_2(pdata->console_size))
+	if (pdata->console_size && !is_power_of_2(pdata->console_size))
 		pdata->console_size = rounddown_pow_of_two(pdata->console_size);
-	if (!is_power_of_2(pdata->ftrace_size))
+	if (pdata->ftrace_size && !is_power_of_2(pdata->ftrace_size))
 		pdata->ftrace_size = rounddown_pow_of_two(pdata->ftrace_size);
 	if (pdata->pmsg_size && !is_power_of_2(pdata->pmsg_size))
 		pdata->pmsg_size = rounddown_pow_of_two(pdata->pmsg_size);
@@ -595,6 +600,9 @@ static int ramoops_probe(struct platform_device *pdev)
 	mem_address = pdata->mem_address;
 	record_size = pdata->record_size;
 	dump_oops = pdata->dump_oops;
+	ramoops_console_size = pdata->console_size;
+	ramoops_pmsg_size = pdata->pmsg_size;
+	ramoops_ftrace_size = pdata->ftrace_size;
 
 	pr_info("attached 0x%lx@0x%llx, ecc: %d/%d\n",
 		cxt->size, (unsigned long long)cxt->phys_addr,
