@@ -2865,10 +2865,8 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
 	if (kstrtoint(strstrip(buf), 0, &pid) || pid < 0)
 		return -EINVAL;
 
-	skip_cfs_throttle(1);
 	cgrp = cgroup_kn_lock_live(of->kn, false);
-	if (!cgrp) {
-		skip_cfs_throttle(0);
+	if (!cgrp)
 		return -ENODEV;
 
 	percpu_down_write(&cgroup_threadgroup_rwsem);
@@ -2912,7 +2910,6 @@ out_unlock_rcu:
 out_unlock_threadgroup:
 	percpu_up_write(&cgroup_threadgroup_rwsem);
 	cgroup_kn_unlock(of->kn);
-	skip_cfs_throttle(0);
 	return ret ?: nbytes;
 }
 

@@ -872,6 +872,8 @@ static ssize_t ffs_epfile_io(struct file *file, struct ffs_io_data *io_data)
 	int halt;
 	int buffer_len = 0;
 
+	//pr_debug("%s: len %zu, read %d\n", __func__, len, read);
+
 	if (atomic_read(&epfile->error))
 		return -ENODEV;
 
@@ -911,7 +913,13 @@ first_try:
 			}
 		}
 
-		buffer_len = !io_data->read ? io_data->len : round_up(io_data->len,
+		spin_lock_irq(&epfile->ffs->eps_lock);
+		/*
+		 * While we were acquiring lock endpoint got disabled
+		 * (disconnect) or changed (composition switch) ?
+		 */
+		if (epfile->ep == ep) {
+			buffer_len = !io_data->read ? io_data->len : round_up(io_data->len,
 						ep->ep->desc->wMaxPacketSize);
 		} else {
 			spin_unlock_irq(&epfile->ffs->eps_lock);
