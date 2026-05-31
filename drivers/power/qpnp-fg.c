@@ -1672,10 +1672,9 @@ resched:
 	schedule_delayed_work(
 		&chip->update_temp_work,
 		msecs_to_jiffies(TEMP_PERIOD_UPDATE_MS));
-/* david.liu@oneplus.tw,20160111  Rebase the fg driver to 8994L */
-#ifdef VENDOR_EDIT
+
 	fg_relax(&chip->update_temp_wakeup_source);
-#endif
+
 }
 
 static void update_jeita_setting(struct work_struct *work)
