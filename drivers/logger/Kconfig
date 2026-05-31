@@ -1,0 +1,47 @@
+config PARTLOG
+    tristate "Persistent partition log backend"
+    depends on BLOCK
+    select PARTITION_META_INFO   # enables GPT label support in hd_struct
+    default y
+    help
+      Console backend that writes every printk() message to a raw eMMC
+      partition.  Works continuously, not only on panic.  No pstore,
+      no ramoops, no /dev paths, no udev required.
+ 
+      Partition discovery uses the kernel block class_interface: add_dev()
+      fires for every partition as it comes online, so probe order between
+      the eMMC driver and this driver doesn't matter.
+ 
+config PARTLOG_PART_LABEL
+    string "GPT partition label to log to"
+    depends on PARTLOG
+    default "modemst1"
+    help
+      GPT label of the target partition, e.g. "modemst1", "apdp", "spare".
+      Find candidates on the device with:
+        adb shell 'ls -la /dev/block/platform/*/by-name'
+      This is the preferred identification method.  Leave empty to use
+      PARTLOG_DISK_NAME + PARTLOG_PART_NR instead.
+ 
+config PARTLOG_DISK_NAME
+    string "Fallback disk base name"
+    depends on PARTLOG
+    default "mmcblk0"
+    help
+      Used only when PARTLOG_PART_LABEL is empty.  The kernel name of the
+      eMMC disk, without /dev/ (e.g. "mmcblk0").
+ 
+config PARTLOG_PART_NR
+    int "Fallback partition number"
+    depends on PARTLOG
+    default 30
+    help
+      Partition number on PARTLOG_DISK_NAME (1-based, as in mmcblk0p30 = 30).
+ 
+config PARTLOG_SIZE_MB
+    int "Partition size in MiB"
+    depends on PARTLOG
+    default 8
+    help
+      Must match the real size of the chosen partition.  Used for
+      circular wrap-around calculation.
