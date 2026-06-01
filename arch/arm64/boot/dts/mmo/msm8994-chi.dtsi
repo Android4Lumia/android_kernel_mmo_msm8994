@@ -122,6 +122,17 @@
  &qusb_phy {
 	status = "ok";
  };
+
+ /{
+	cityman_batterydata: qcom,battery-data {
+		qcom,batt-id-range-pct = <15>;
+		#include "battery/microsoft_bvt4d_3340mah.dtsi"
+	};
+};
+
+&pmi8994_charger {
+	qcom,battery-data = <&cityman_batterydata>;
+};
  
 &pcie1 {
 	/delete-property/ qcom,ep-wakeirq;
