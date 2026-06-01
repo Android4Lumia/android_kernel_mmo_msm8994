@@ -29,17 +29,6 @@
 #include "common/regulator.dtsi"
 #include "common/gpios.dtsi"
 
-
-&i2c_5 {
-	smb1357-charger@1c {
-		compatible = "qcom,smb1357-charger";
-		reg = <0x1c>;
-		qcom,parallel-charger;
-		qcom,float-voltage-mv = <4400>;
-		qcom,recharge-thresh-mv = <100>;
-	};
-};
-
 &mdss_mdp {
 	qcom,mdss-pref-prim-intf = "dsi";
 };
@@ -71,29 +60,49 @@
 	pinctrl-0 = <&uart_console_sleep>;
 };
 
+/{
+	cityman_batterydata: qcom,battery-data {
+		qcom,batt-id-range-pct = <15>;
+		#include "battery/microsoft_bvt4d_3340mah.dtsi"
+	};
+};
+&pmi8994_charger {
+	qcom,battery-data = <&cityman_batterydata>;
+};
 &pcie0 {
 	status = "disabled";
 };
 
- &usb3 {
-	 status = "ok";
-	 qcom,usbin-vadc = <&pmi8994_vadc>;
-	 qcom,internal-chg-detect;
+&usb3 {
+	status = "ok";
+	qcom,usbin-vadc = <&pmi8994_vadc>;
+	qcom,internal-chg-detect;
  
-	 dwc3@f9200000 {
-		 maximum-speed = "high-speed";
-		 no-set-vbus-power;
-	 };
- };
+	dwc3@f9200000 {
+		maximum-speed = "high-speed";
+		no-set-vbus-power;
+	};
+};
  
  &hsphy0 {
 	 status = "ok";
+	qcom,hsphy-init-host = <0x00D191A4>;
+	qcom,hsphy-init = <0x00D1D9A4>;
+	qcom,charger = <&pmi8994_charger>;
  };
  
  &ssphy0 {
 	 status = "ok";
  };
- 
+
+&usb_otg_switch {
+	status = "disabled";
+};
+
+&qusb_phy {
+	status = "disabled";
+};
+
  &qcom_crypto1fde {
 	status = "okay";
 };
@@ -112,15 +121,6 @@
 
  &qcom_cedev {
 	 status = "okay";
- };
- 
- &usb_ehci {
-	 status = "ok";
-	qcom,usb2-enable-uicc;
- };
- 
- &qusb_phy {
-	status = "ok";
  };
  
 &pcie1 {

@@ -15,7 +15,7 @@ config PARTLOG
 config PARTLOG_PART_LABEL
     string "GPT partition label to log to"
     depends on PARTLOG
-    default "modemst1"
+    default "LOGFS"
     help
       GPT label of the target partition, e.g. "modemst1", "apdp", "spare".
       Find candidates on the device with:
@@ -34,7 +34,7 @@ config PARTLOG_DISK_NAME
 config PARTLOG_PART_NR
     int "Fallback partition number"
     depends on PARTLOG
-    default 30
+    default 52
     help
       Partition number on PARTLOG_DISK_NAME (1-based, as in mmcblk0p30 = 30).
  

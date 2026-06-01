@@ -395,9 +395,12 @@ int dwc3_send_gadget_generic_command(struct dwc3 *dwc, int cmd, u32 param)
 		if (!(reg & DWC3_DGCMD_CMDACT)) {
 			dev_vdbg(dwc->dev, "Command Complete --> %d\n",
 					DWC3_DGCMD_STATUS(reg));
-			if (DWC3_DGCMD_STATUS(reg))
-				return -EINVAL;
-			return 0;
+			if (DWC3_DGCMD_STATUS(reg)) {
+				ret = -EINVAL;
+				break;
+			}
+			ret = 0;
+			break;
 		}
 
 		/*
@@ -1062,6 +1065,7 @@ static void dwc3_prepare_trbs(struct dwc3_ep *dep, bool starting)
 	list_for_each_entry_safe(req, n, &dep->request_list, list) {
 		unsigned	length;
 		dma_addr_t	dma;
+		bool		last_req = list_is_last(&req->list, &dep->request_list);
 		int		num_trbs_required = 0;
 
 		last_one = false;
@@ -1104,7 +1108,7 @@ static void dwc3_prepare_trbs(struct dwc3_ep *dep, bool starting)
 					bool mpkt = false;
 
 					chain = false;
-					if (list_empty(&dep->request_list)) {
+					if (last_req) {
 						last_one = true;
 						goto start_trb_queuing;
 					}
@@ -1180,7 +1184,7 @@ start_trb_queuing:
 			}
 
 			/* Is this the last request? */
-			if (list_is_last(&req->list, &dep->request_list))
+			if (last_req)
 				last_one = 1;
 
 			dwc3_prepare_one_trb(dep, req, dma, length,
@@ -1970,7 +1974,7 @@ static int dwc3_gadget_vbus_draw(struct usb_gadget *g, unsigned mA)
 	struct dwc3		*dwc = gadget_to_dwc(g);
 	struct dwc3_otg		*dotg = dwc->dotg;
 
-	if (dotg && dotg->otg.phy)
+	if (dotg && dotg->otg.phy && !dwc->no_set_vbus_power)
 		return usb_phy_set_power(dotg->otg.phy, mA);
 
 	return -ENOTSUPP;
@@ -3032,7 +3036,7 @@ static void dwc3_gadget_reset_interrupt(struct dwc3 *dwc)
 
 	dwc3_gadget_usb3_phy_suspend(dwc, false);
 
-	if (dotg && dotg->otg.phy)
+	if (dotg && dotg->otg.phy && !dwc->no_set_vbus_power)
 		usb_phy_set_power(dotg->otg.phy, 0);
 
 	if (dwc->gadget.speed != USB_SPEED_UNKNOWN)
